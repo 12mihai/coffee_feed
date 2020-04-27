@@ -1,7 +1,9 @@
 <?php
 namespace App\Command;
 
+use App\LogDependency;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -42,15 +44,10 @@ class DeleteConfigurationCommand extends Command
 
         $confirmDeleteQuestion = new Question("Are you sure you want to delete(yes/no):");
         $confirmDeleteAnswer = $helper->ask($input, $output, $confirmDeleteQuestion);
-        if ($confirmDeleteAnswer === "yes")
-            $deleted = self::deleteConfigurationFiles();
-        else
-            $deleted = false;
 
-        if ($deleted)
-            $message = "Configuration files were removed successfully.";
-        else
-            $message = "Configuration files could not be deleted.";
+        $logger = new ConsoleLogger($output);
+        $logDependency = new LogDependency($logger);
+        $message = $logDependency->executeDeleteConfigurationCommand($confirmDeleteAnswer);
 
         $output->writeln($message);
 

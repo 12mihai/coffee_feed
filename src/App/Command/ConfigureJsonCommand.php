@@ -1,15 +1,15 @@
 <?php
 namespace App\Command;
 
+use App\LogDependency;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ConfigureJsonCommand extends Command
 {
-    const JSON_FILE_PATH = 'config/credentials.json';
-
     /**
      * Command configuration
      *
@@ -45,22 +45,9 @@ class ConfigureJsonCommand extends Command
         $clientSecretQuestion = new Question("Enter API Client Secret:");
         $clientSecret = $helper->ask($input, $output, $clientSecretQuestion);
 
-        $credentials = [
-            "client_id" => $clientId,
-            "project_id" => "quickstart-1587929780297",
-            "auth_uri" => "https://accounts.google.com/o/oauth2/auth",
-            "token_uri" => "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url" => "https://www.googleapis.com/oauth2/v1/certs",
-            "client_secret" => $clientSecret,
-            "redirect_uris" => ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"],
-        ];
-
-        $jsonCredentials = json_encode(array('installed' => $credentials));
-
-        if (file_put_contents(self::JSON_FILE_PATH, $jsonCredentials))
-            $message = sprintf("Success! Credentials are stored in %s!", self::JSON_FILE_PATH);
-        else
-            $message = "Oops! Something went wrong encoding the credentials.";
+        $logger = new ConsoleLogger($output);
+        $logDependency = new LogDependency($logger);
+        $message = $logDependency->executeConfigureJsonCommand($clientId, $clientSecret);
 
         $output->writeln($message);
 
