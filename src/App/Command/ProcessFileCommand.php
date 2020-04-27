@@ -11,6 +11,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ProcessFileCommand extends Command
 {
     /**
+     * Configure the command
+     *
      * @return void
      */
     protected function configure(): void
@@ -29,6 +31,8 @@ class ProcessFileCommand extends Command
     }
 
     /**
+     * Convert XML to Spreadsheet
+     *
      * @param InputInterface  $input
      * @param OutputInterface $output
      *
@@ -38,25 +42,15 @@ class ProcessFileCommand extends Command
     {
         $helper = $this->getHelper('question');
 
-
-
         $filePathQuestion = new Question("Choose XML filepath (local or remote) ", 'files/coffee_feed_short.xml');
         $filePath = $helper->ask($input, $output, $filePathQuestion);
         $xmlToArray = self::xmlToArray($filePath);
 
-        //print_r($xmlToArray);
-        //die();
-
         $formattedArray = self::createFormattedArray($xmlToArray);
-
-        //$header = array_keys($xmlToArray['item'][0]);
-
-        //print_r($header);
-        //die();
 
         $spNameQuestion = new Question("Enter a name for the Spreadsheet: ", 'Coffee');
         $spreadsheetName = $helper->ask($input, $output, $spNameQuestion);
-        $spreadsheetId = GoogleClient::initializeClient($formattedArray);
+        $spreadsheetId = GoogleClient::initializeClient($spreadsheetName, $formattedArray);
 
         $message = sprintf("Spreadsheet ID is %s!", $spreadsheetId);
 
@@ -65,6 +59,12 @@ class ProcessFileCommand extends Command
         return 0;
     }
 
+    /**
+     * Convert xml file to array
+     *
+     * @param string $xmlFile The raw XML file
+     * @return array
+     */
     protected function xmlToArray($xmlFile) {
         $xml = simplexml_load_file($xmlFile, null, LIBXML_NOCDATA);
         $json = json_encode($xml);
@@ -72,6 +72,12 @@ class ProcessFileCommand extends Command
         return $createdArray;
     }
 
+    /**
+     * Format raw array to the required structure
+     *
+     * @param array $rawArray The Array converted from XML
+     * @return array The formatted array based on spreadsheet structure
+     */
     protected function createFormattedArray($rawArray) {
         $formattedArray = array();
         $arrayKey = 0;
@@ -84,15 +90,10 @@ class ProcessFileCommand extends Command
                     $item[$key] = '';
                 }
             }
-            //print_r(array_values($item));
-            //die();
             $arrayKey++;
             $formattedArray[$arrayKey] = array_values($item);
         }
 
         return $formattedArray;
-
-        print_r($headers);
-        die($headers);
     }
 }
