@@ -1,6 +1,6 @@
 # Coffee Feed
 
-##About
+## About
 Symfony console program that parses a local or remote XML file and inserts the data into a Google Spreadheet using Google Sheets API
 
 ## Setup
